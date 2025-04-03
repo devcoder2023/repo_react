@@ -24,8 +24,11 @@ export default function ToDo({ todo }) {
 
     const { todos, setTodos } = useContext(TodosContext);
 
+    const [showDialogUpdate, setShowDialogUpdate] = React.useState(false);
+    const [showDialogDelete, setShowDialogDelete] = React.useState(false);
+    const [inputFormUpdate, setInputFormUpdate] = React.useState({ title: todo.title, content: todo.content});
+
     function handleCheckClick() {
-        // handleCheck(todo.id);
 
         const updateTodos = todos.map( (t) => {
             if(t.id == todo.id) {
@@ -34,20 +37,16 @@ export default function ToDo({ todo }) {
             return t;
         } );
         setTodos(updateTodos);
+        localStorage.setItem("todos", JSON.stringify(updateTodos) );
         
     }
     function handleDeleteClick() {
-        console.log("DELETE: ", todo.id);
-        const newTodos = todos.filter( (t) => {
-            // console.log(t);
-            // if(t.id == todo.id) {
-            //     return false;
-            // } else {
-            //     return true;
-            // }
+        
+        const updateTodos = todos.filter( (t) => {
             return t.id != todo.id;
         });
-        setTodos(newTodos);
+        setTodos(updateTodos);
+        localStorage.setItem("todos", JSON.stringify(updateTodos) );
         handleDeleteDialogClose();
     }
     function handleUpdateClick() {
@@ -59,12 +58,9 @@ export default function ToDo({ todo }) {
             return t;
         } );
         setTodos(updateTodos);
+        localStorage.setItem("todos", JSON.stringify(updateTodos) );
         handleUpdateDialogClose();
     }
-
-    const [showDialogUpdate, setShowDialogUpdate] = React.useState(false);
-    const [showDialogDelete, setShowDialogDelete] = React.useState(false);
-    const [inputFormUpdate, setInputFormUpdate] = React.useState({ title: todo.title, content: todo.content});
 
     {/* Action Dialog */}
     const handleUpdateDialogOpen = () => {
@@ -157,7 +153,7 @@ export default function ToDo({ todo }) {
             <CardContent>
             <Grid container spacing={2}>
                 <Grid size={8}>
-                    <Typography variant='h5' sx={{textAlign: "right", fontFamily: "zain", fontWeight: "400"}}>
+                    <Typography variant='h5' sx={{textAlign: "right", fontFamily: "zain", fontWeight: "400", textDecoration: todo.isComplete ? "line-through" : "none" }}>
                     {todo.title}
                     </Typography>
                     <Typography variant='h6' sx={{textAlign: "right", fontFamily: "zain", fontWeight: "300"}}>

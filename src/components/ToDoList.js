@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 // import * as React from 'react';
 
 import Button from '@mui/material/Button';
@@ -17,10 +17,15 @@ export default function ToDoList() {
     const { todos, setTodos } = useContext(TodosContext);
 
     const [titleInput, setTitleInput] = useState("");
+    const [displayTodosType, setDisplayTodosType] = useState("all");
 
-    const todosList = todos.map( (t) => {
-        return <ToDo key={t.id} todo={t} />;
-    });
+    useEffect( () => {
+      console.log("test effect");
+      const initilaTodosList = JSON.parse(localStorage.getItem("todos")) ?? [];
+      setTodos( initilaTodosList );
+      console.log(initilaTodosList);
+    }, [] );
+    
 
   function handleAddClick() {
     const newTodo = {
@@ -29,16 +34,55 @@ export default function ToDoList() {
         content: "",
         isComplete: false,
     }
-    setTodos([...todos, newTodo]);
+    const newTodos = [ ...todos, newTodo ];
+    setTodos( newTodos );
+    localStorage.setItem("todos", JSON.stringify( newTodos ) );
     setTitleInput("");
   }
   function handleInputChange(event) {
     setTitleInput(event.target.value)
   }
 
+  function handleChangeDisplayTodos(e) {
+    console.log(e.target.value);
+    setDisplayTodosType(e.target.value);
+  }
+
+
+
+  let todosFilter = todos;
+
+  let todosFilter2 = useMemo( () => {
+      console.log("re render todos");
+      return todosFilter = todos.filter( (t) => {
+        return t.isComplete;
+      });
+  } , [todos] );
+
+  if( displayTodosType == "completed" ) {
+    // todosFilter = todos.filter( (t) => {
+    //   return t.isComplete;
+    // });
+    todosFilter = todosFilter2;
+  } else if( displayTodosType == "non-completed" ) {
+    todosFilter = todos.filter( (t) => {
+      return !t.isComplete;
+    });
+  } else {
+    todosFilter = todos;
+  }
+
+  const todosRender = todosFilter.map( (t) => {
+    return <ToDo key={t.id} todo={t} />;
+  });
+
+
   return (
       <Container maxWidth="sm">
-        <Card sx={{ minWidth: 275 }}>
+        <Card sx={{ minWidth: 275 }} style={{
+          maxHeight: "80vh",
+          overflow: "scroll",
+        }}>
             <CardContent>
                 <Typography variant='h2' style={{fontWeight: "700"}}>
                 المهام
@@ -47,19 +91,19 @@ export default function ToDoList() {
                 
                 <ToggleButtonGroup
                 color="primary"
-                // value={alignment}
+                value={displayTodosType}
                 exclusive
-                // onChange={handleChange}
+                onChange={handleChangeDisplayTodos}
                 aria-label="Platform"
-                style={{marginTop: "30px"}}
+                style={{marginTop: "30px", direction: "ltr"}}
                 >
-                    <ToggleButton value="web">الكل</ToggleButton>
-                    <ToggleButton value="android">المنجز</ToggleButton>
-                    <ToggleButton value="ios">غير منجز</ToggleButton>
+                    <ToggleButton value="non-completed">غير منجز</ToggleButton>
+                    <ToggleButton value="completed">المنجز</ToggleButton>
+                    <ToggleButton value="all">الكل</ToggleButton>
                 </ToggleButtonGroup>
                 
                 {/* List Todos */}
-                {todosList}
+                {todosRender}
                 {/*== List Todos ==*/}
                 
                 {/* Widget Input & Button */}
@@ -68,7 +112,7 @@ export default function ToDoList() {
                     <TextField id="outlined-basic" value={titleInput} onChange={ handleInputChange } label="عنوان المهمة" variant="outlined" style={{width: "100%"}}/>
                 </Grid>
                 <Grid size={4}>
-                <Button variant="contained" style={{width: "100%", height: "100%"}} onClick={handleAddClick} >إضافة مهمة</Button>
+                <Button variant="contained" style={{width: "100%", height: "100%"}} onClick={handleAddClick} disabled={titleInput.length == "0"}>إضافة مهمة</Button>
                 </Grid>
                 </Grid>
                 {/*== Widget Input & Button ==*/}
