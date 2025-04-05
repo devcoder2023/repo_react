@@ -7,11 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 import * as React from 'react';
@@ -20,13 +16,10 @@ import { TodosContext } from "../contexts/TodosContext";
 import { useContext } from 'react';
 
 
-export default function ToDo({ todo }) {
+export default function ToDo({ todo , showDialogUpdate, showDialogDelete }) {
 
     const { todos, setTodos } = useContext(TodosContext);
 
-    const [showDialogUpdate, setShowDialogUpdate] = React.useState(false);
-    const [showDialogDelete, setShowDialogDelete] = React.useState(false);
-    const [inputFormUpdate, setInputFormUpdate] = React.useState({ title: todo.title, content: todo.content});
 
     function handleCheckClick() {
 
@@ -40,114 +33,19 @@ export default function ToDo({ todo }) {
         localStorage.setItem("todos", JSON.stringify(updateTodos) );
         
     }
-    function handleDeleteClick() {
-        
-        const updateTodos = todos.filter( (t) => {
-            return t.id != todo.id;
-        });
-        setTodos(updateTodos);
-        localStorage.setItem("todos", JSON.stringify(updateTodos) );
-        handleDeleteDialogClose();
-    }
-    function handleUpdateClick() {
-
-        const updateTodos = todos.map( (t) => {
-            if(t.id == todo.id) {
-                return { ...t, title: inputFormUpdate.title, content: inputFormUpdate.content };
-            }
-            return t;
-        } );
-        setTodos(updateTodos);
-        localStorage.setItem("todos", JSON.stringify(updateTodos) );
-        handleUpdateDialogClose();
-    }
 
     {/* Action Dialog */}
     const handleUpdateDialogOpen = () => {
-        setShowDialogUpdate(true);
+        showDialogUpdate( todo );
     };
-    const handleUpdateDialogClose = () => {
-        setShowDialogUpdate(false);
-    }
 
     const handleDeleteDialogOpen = () => {
-        setShowDialogDelete(true);
-    };
-    const handleDeleteDialogClose = () => {
-        setShowDialogDelete(false);
+        showDialogDelete( todo );
     };
     {/*== Action Dialog ==*/}
 
     return(
         <>
-        {/* Delete Dialog */}
-        <Dialog
-            style={{direction: "rtl"}}
-            open={showDialogDelete}
-            onClose={handleDeleteDialogClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-        >
-            <DialogTitle id="alert-dialog-title">
-                هل تريد حذف المهمة ؟
-            </DialogTitle>
-            <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-                لا يمكنك التراجع عن هذا الحذف.
-            </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-            <Button onClick={handleDeleteDialogClose}>إلغاء</Button>
-            <Button onClick={handleDeleteClick} autoFocus>نعم</Button>
-            </DialogActions>
-        </Dialog>
-        {/*== Delete Dialog ==*/}
-
-        {/* Update Dialog */}
-        <Dialog
-            style={{direction: "rtl"}}
-            open={showDialogUpdate}
-            onClose={handleUpdateDialogClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-        >
-            <DialogTitle id="alert-dialog-title">
-                تعديل المهمة
-            </DialogTitle>
-            <DialogContent>
-                <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="title"
-                    label="عنوان المهمة"
-                    fullWidth
-                    variant="standard"
-                    value={ inputFormUpdate.title }
-                    onChange={ (e) => {
-                        setInputFormUpdate({ ...inputFormUpdate, title: e.target.value });
-                    }}
-                />
-                <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="description"
-                    label="تفاصيل المهمة"
-                    fullWidth
-                    variant="standard"
-                    value={ inputFormUpdate.content }
-                    onChange={ (e) => {
-                        setInputFormUpdate({ ...inputFormUpdate, content: e.target.value });
-                    }}
-                />
-            </DialogContent>
-            <DialogActions>
-            <Button onClick={handleUpdateDialogClose}>إلغاء</Button>
-            <Button onClick={handleUpdateClick} autoFocus>تحديث</Button>
-            </DialogActions>
-        </Dialog>
-        {/*== Update Dialog ==*/}
 
         <Card className='cardToDo' sx={{ minWidth: 275, background: "#428aa3", color: "white", marginTop: 5}}>
             <CardContent>

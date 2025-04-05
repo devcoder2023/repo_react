@@ -11,20 +11,28 @@ import ToDo from './ToDo';
 import { TodosContext } from "../contexts/TodosContext";
 import { v4 as uuidv4 } from 'uuid';
 
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 export default function ToDoList() {
 
-    const { todos, setTodos } = useContext(TodosContext);
+  console.log("ReREnder ..")
 
-    const [titleInput, setTitleInput] = useState("");
-    const [displayTodosType, setDisplayTodosType] = useState("all");
+  const { todos, setTodos } = useContext(TodosContext);
 
-    useEffect( () => {
-      console.log("test effect");
-      const initilaTodosList = JSON.parse(localStorage.getItem("todos")) ?? [];
-      setTodos( initilaTodosList );
-      console.log(initilaTodosList);
-    }, [] );
+  const [titleInput, setTitleInput] = useState("");
+  const [displayTodosType, setDisplayTodosType] = useState("all");
+
+  useEffect( () => {
+    console.log("test effect");
+    const initilaTodosList = JSON.parse(localStorage.getItem("todos")) ?? [];
+    setTodos( initilaTodosList );
+    console.log(initilaTodosList);
+  }, [] );
+
     
 
   function handleAddClick() {
@@ -49,6 +57,87 @@ export default function ToDoList() {
   }
 
 
+  // Dialog //
+
+  const [showDialogUpdate, setShowDialogUpdate] = useState(false);
+  const [showDialogDelete, setShowDialogDelete] = useState(false);
+
+  const [dialogUpdateTodo, setDialogUpdateTodo] = useState(null);
+  const [dialogDeleteTodo, setDialogDeleteTodo] = useState(null);
+
+  let testv = (d) => {
+    console.log("D: ", d);
+    if(d) {
+      console.log("DD: Not NULL");
+      return d.title;
+    } else {
+      console.log("DD: ", d);
+      return "AX";
+      // return d.title;
+    }
+  }
+  // Dialogs Update Handlers //
+  console.log("DU: ", dialogUpdateTodo);
+
+  // const [inputFormUpdate, setInputFormUpdate] = useState({ 
+  //   title: testv(dialogUpdateTodo) , 
+  //   content: (dialogUpdateTodo) ? dialogUpdateTodo.content : "B",
+  // });
+  const [inputFormUpdate, setInputFormUpdate] = useState({ title: "", content: ""});
+  console.log("F: ", inputFormUpdate);
+
+  // useEffect( () => {
+  //   const ddd = dialogUpdateTodo;
+  //   console.log("EFFct: ", ddd?.title||"OO");
+  //   // setInputFormUpdate({title: dialogUpdateTodo.title, content: dialogUpdateTodo.content});
+  //   setInputFormUpdate({title: "E", content: "Z"});
+  // }, [dialogUpdateTodo]);
+
+  function handleUpdateConfirm() {
+
+    const updateTodos = todos.map( (t) => {
+        if(t.id == dialogUpdateTodo.id) {
+            return { ...t, title: inputFormUpdate.title, content: inputFormUpdate.content };
+        }
+        return t;
+    } );
+    setTodos(updateTodos);
+    localStorage.setItem("todos", JSON.stringify(updateTodos) );
+    handleUpdateDialogClose();
+}
+  const handleUpdateDialogOpen = ( todo ) => {
+    console.log("OPEN U: ", todo );
+    setDialogUpdateTodo( todo );
+    setInputFormUpdate({ title: todo.title, content: todo.content });
+    setShowDialogUpdate(true);
+    console.log("End Fun Open")
+  };
+  const handleUpdateDialogClose = () => {
+    setDialogUpdateTodo( null );
+    setShowDialogUpdate(false);
+  }
+
+  // Dialogs Delete Handlers //
+
+  function handleDeleteConfirm() {
+    const updateTodos = todos.filter( (t) => {
+      return t.id != dialogDeleteTodo.id;
+    });
+    setTodos(updateTodos);
+    localStorage.setItem("todos", JSON.stringify(updateTodos) );
+    handleDeleteDialogClose();
+  }
+  const handleDeleteDialogOpen = ( todo ) => {
+    setDialogDeleteTodo( todo );
+    setShowDialogDelete(true);
+  };
+  const handleDeleteDialogClose = () => {
+    setDialogDeleteTodo( null );
+    setShowDialogDelete(false);
+  };
+
+
+  //  TODOS //
 
   let todosFilter = todos;
 
@@ -73,11 +162,81 @@ export default function ToDoList() {
   }
 
   const todosRender = todosFilter.map( (t) => {
-    return <ToDo key={t.id} todo={t} />;
+    return <ToDo key={t.id} todo={t} showDialogUpdate={ handleUpdateDialogOpen } showDialogDelete={ handleDeleteDialogOpen }/>;
   });
 
 
   return (
+    <>
+      {/* Update Dialog */}
+      <Dialog
+          style={{direction: "rtl"}}
+          open={showDialogUpdate}
+          onClose={handleUpdateDialogClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+      >
+          <DialogTitle id="alert-dialog-title">
+              تعديل المهمة
+          </DialogTitle>
+          <DialogContent>
+              <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  id="title"
+                  label="عنوان المهمة"
+                  fullWidth
+                  variant="standard"
+                  value={ inputFormUpdate.title }
+                  onChange={ (e) => {
+                      setInputFormUpdate({ ...inputFormUpdate, title: e.target.value });
+                  }}
+              />
+              <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  id="description"
+                  label="تفاصيل المهمة"
+                  fullWidth
+                  variant="standard"
+                  value={ inputFormUpdate.content }
+                  onChange={ (e) => {
+                      setInputFormUpdate({ ...inputFormUpdate, content: e.target.value });
+                  }}
+              />
+          </DialogContent>
+          <DialogActions>
+          <Button onClick={handleUpdateDialogClose}>إلغاء</Button>
+          <Button onClick={handleUpdateConfirm} autoFocus>تحديث</Button>
+          </DialogActions>
+      </Dialog>
+      {/*== Update Dialog ==*/}
+
+      {/* Delete Dialog */}
+      <Dialog
+          style={{direction: "rtl"}}
+          open={showDialogDelete}
+          onClose={handleDeleteDialogClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+      >
+          <DialogTitle id="alert-dialog-title">
+              هل تريد حذف المهمة ؟
+          </DialogTitle>
+          <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+              لا يمكنك التراجع عن هذا الحذف.
+          </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+          <Button onClick={handleDeleteDialogClose}>إلغاء</Button>
+          <Button onClick={handleDeleteConfirm} autoFocus>نعم</Button>
+          </DialogActions>
+      </Dialog>
+      {/*== Delete Dialog ==*/}
+
       <Container maxWidth="sm">
         <Card sx={{ minWidth: 275 }} style={{
           maxHeight: "80vh",
@@ -120,5 +279,6 @@ export default function ToDoList() {
             </CardContent>
         </Card>
       </Container>
+    </>
   );
 }
